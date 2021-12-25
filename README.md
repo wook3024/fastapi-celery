@@ -7,7 +7,7 @@ How to handle background processes with FastAPI, Celery, Redis, RabbitMQ.
 ### Build and start containers:
 
 ```sh
-docker-compose up -d --build
+docker-compose up --build
 ```
 
 Api docs: [http://localhost:8000/docs](http://localhost:8000/docs)
