@@ -2,7 +2,7 @@
 # See https://pre-commit.com/hooks.html for more hooks
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.2.0
+    rev: v4.1.0
     hooks:
     -   id: trailing-whitespace
     -   id: end-of-file-fixer
@@ -12,7 +12,14 @@ repos:
     rev: 6.3.0
     hooks:
     -   id: pip-compile
+        name: pip-compile --generate-hashes requirements.in
+        args: [requirements.in]
+        files: ^requirements\.(in|txt)$
+    -   id: pip-compile
+        name: pip-compile --generate-hashes dev-requirements.in
+        args: [requirements-dev.in]
+        files: ^requirements-dev\.(in|txt)$
 -   repo: https://github.com/psf/black
-    rev: 19.3b0
+    rev: 21.12b0
     hooks:
     -   id: black
