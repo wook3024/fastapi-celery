@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:${RABBITMQ_IMAGE_VERSION:-3.9.11}
+    container_name: rabbitmq
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq:rw
+    ports:
+      - 5672:5672
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USERNAME:-guest}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD:-guest}
+
+  redis:
+    image: redis:${REDIS_IMAGE_VERSION:-6.2.6}
+    container_name: redis
+    volumes:
+      - redis:/data:rw
+    ports:
+      - 6379:6379
+
+  web:
+    image: suy3024/fastapi-celery:${FASTAPI_CELERY_IMAGE_VERSION:-0.0.0}
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PYTHON_VERSION: ${PYTHON_VERSION:-3.9}
+    container_name: web
+    ports:
+      - 8000:8000
+    volumes:
+      - .:/workspace:rw
+      - ${BASE_VOLUME_DIR:-./docker}/logs/web:/tmp/logs:rw
+    environment:
+      - CELERY_BROKER_URL=${CELERY_BROKER_TYPE:-redis}://${CELERY_BROKER_ADDRESS:-redis}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND_TYPE:-rpc}://${RABBITMQ_USERNAME:-guest}:${RABBITMQ_PASSWORD:-guest}@${CELERY_RESULT_BACKEND_ADDRESS:-rabbitmq}
+    depends_on:
+      - redis
+      - rabbitmq
+
+  worker:
+    image: suy3024/fastapi-celery:${FASTAPI_CELERY_IMAGE_VERSION:-0.0.0}
+    container_name: worker
+    volumes:
+      - .:/workspace:rw
+      - ${BASE_VOLUME_DIR:-./docker}/logs/worker:/tmp/logs:rw
+    environment:
+      - CELERY_BROKER_URL=${CELERY_BROKER_TYPE:-redis}://${CELERY_BROKER_ADDRESS:-redis}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND_TYPE:-rpc}://${RABBITMQ_USERNAME:-guest}:${RABBITMQ_PASSWORD:-guest}@${CELERY_RESULT_BACKEND_ADDRESS:-rabbitmq}
+    depends_on:
+      - web
+      - redis
+      - rabbitmq
+    entrypoint: celery -A app.worker.celery worker --loglevel=info
+      --logfile=/tmp/logs/celery.log
+
+  flower:
+    image: suy3024/fastapi-celery:${FASTAPI_CELERY_IMAGE_VERSION:-0.0.0}
+    container_name: flower
+    ports:
+      - 5555:5555
+    environment:
+      - CELERY_BROKER_URL=${CELERY_BROKER_TYPE:-redis}://${CELERY_BROKER_ADDRESS:-redis}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND_TYPE:-rpc}://${RABBITMQ_USERNAME:-guest}:${RABBITMQ_PASSWORD:-guest}@${CELERY_RESULT_BACKEND_ADDRESS:-rabbitmq}
+    depends_on:
+      - web
+      - redis
+      - worker
+      - rabbitmq
+    entrypoint: celery -A app.worker.celery --autoscale=6,2
+      --broker=${CELERY_BROKER_TYPE:-redis}://${CELERY_BROKER_ADDRESS:-redis}
+      flower --port=5555
+
+volumes:
+  rabbitmq: {}
+  redis: {}
