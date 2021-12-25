@@ -13,8 +13,9 @@ ENV PYTHONUNBUFFERED 1
 COPY . /workspace
 WORKDIR /workspace
 
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install pip-tools
+RUN pip-sync
 
 USER appuser
 
