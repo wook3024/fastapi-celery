@@ -17,9 +17,5 @@ def run_task(delay: int = Body(...)) -> JSONResponse:
 @app.get("/tasks/{task_id}", status_code=200)
 def get_status(task_id: str) -> JSONResponse:
     task_result = AsyncResult(task_id)
-    result = {
-        "id": task_id,
-        "status": task_result.state,
-        "result": task_result.result,
-    }
+    result = {"id": task_id, "status": task_result.state, "result": task_result.result}
     return JSONResponse(content=result)
