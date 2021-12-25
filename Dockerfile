@@ -15,7 +15,7 @@ WORKDIR /workspace
 
 RUN pip install --upgrade pip && \
     pip install pip-tools
-RUN pip-sync
+RUN pip-sync requirements.txt dev-requirements.txt
 
 USER appuser
 
