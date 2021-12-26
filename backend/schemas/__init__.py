@@ -1,6 +1,8 @@
-from .task import MultipleRequest, MultipleTask
+from .task import MultipleRequest, TaskComparison, Id, TaskResult
 
 __all__ = [
     "MultipleRequest",
-    "MultipleTask",
+    "TaskComparison",
+    "Id",
+    "TaskResult",
 ]

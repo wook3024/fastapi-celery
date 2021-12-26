@@ -1,8 +1,8 @@
-from typing import List
+from typing import List, Dict
 from pydantic import BaseModel
 
 
-class MultipleTask(BaseModel):
+class TaskComparison(BaseModel):
     count: int = 10
     delay: int = 1
     method_list: List = ["ray", "default", "celery"]
@@ -11,6 +11,16 @@ class MultipleTask(BaseModel):
 class MultipleRequest(BaseModel):
     address: str = "localhost"
     port: int = 8000
-    endpoint: str = "tasks"
+    endpoint: str = "background_task"
     delay: str = "1"
-    timeout: int = 300
+    timeout: int = 10
+
+
+class Id(BaseModel):
+    id: str
+
+
+class TaskResult(BaseModel):
+    id: str
+    state: str
+    result: Dict
