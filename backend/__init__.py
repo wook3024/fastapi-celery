@@ -15,7 +15,7 @@ celery_conf = {
     ),
     "backend": environ.get(
         "CELERY_RESULT_BACKEND",
-        "rpc://guest:guest@localhost:5672",
+        "elasticsearch://elasticsearch:9200/background_task/result",
     ),
 }
 celery = Celery(
