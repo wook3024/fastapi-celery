@@ -1,7 +1,9 @@
 version: '3.8'
 
 services:
-  rabbitmq: null
+  elasticsearch: null
+
+  kibana: null
 
   redis:
     deploy:
