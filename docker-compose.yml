@@ -52,8 +52,8 @@ services:
       - .:/workspace:rw
       - ${BASE_VOLUME_DIR:-./docker}/logs/web:/tmp/logs:rw
     environment:
-      - CELERY_BROKER_URL=${CELERY_BROKER_TYPE:-redis}://${CELERY_BROKER_ADDRESS:-redis}
-      - CELERY_RESULT_BACKEND=elasticsearch://elasticsearch:9200/background_task/result
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-elasticsearch://elasticsearch:9200/background_task/result}
     depends_on:
       - redis
       - elasticsearch
@@ -66,8 +66,8 @@ services:
       - .:/workspace:rw
       - ${BASE_VOLUME_DIR:-./docker}/logs/worker:/tmp/logs:rw
     environment:
-      - CELERY_BROKER_URL=${CELERY_BROKER_TYPE:-redis}://${CELERY_BROKER_ADDRESS:-redis}
-      - CELERY_RESULT_BACKEND=elasticsearch://elasticsearch:9200/background_task/result
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-elasticsearch://elasticsearch:9200/background_task/result}
     depends_on:
       - web
       - redis
@@ -82,16 +82,15 @@ services:
     ports:
       - 5555:5555
     environment:
-      - CELERY_BROKER_URL=${CELERY_BROKER_TYPE:-redis}://${CELERY_BROKER_ADDRESS:-redis}
-      - CELERY_RESULT_BACKEND=elasticsearch://elasticsearch:9200/background_task/result
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-elasticsearch://elasticsearch:9200/background_task/result}
     depends_on:
       - web
       - redis
       - worker
       - elasticsearch
     entrypoint: celery -A backend.worker.celery
-      --broker=${CELERY_BROKER_TYPE:-redis}://${CELERY_BROKER_ADDRESS:-redis}
-      flower --port=5555
+      --broker=${CELERY_BROKER_URL:-redis://redis} flower --port=5555
 
 volumes:
   redis: {}
