@@ -9,3 +9,4 @@ httpx==0.21.1
 python-multipart==0.0.5
 pillow==8.4.0
 opencv-python==4.5.4.60
+elasticsearch==7.16.1
