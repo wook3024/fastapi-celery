@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y libgl1-mesa-glx
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+ENV PYTHONPATH /workspace
 
 COPY . /workspace
 WORKDIR /workspace
@@ -23,4 +24,4 @@ USER appuser
 
 RUN mkdir /tmp/logs
 
-ENTRYPOINT [ "uvicorn", "main:app", "--host", "0.0.0.0", "--reload", "--reload-exclude", "logs/" ]
+ENTRYPOINT [ "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--reload", "--reload-exclude", "logs/" ]

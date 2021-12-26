@@ -56,8 +56,7 @@ services:
       - web
       - redis
       - rabbitmq
-    tty: true
-    entrypoint: celery -A app.worker.celery worker --task-events --autoscale=6,2
+    entrypoint: celery -A backend.worker.celery worker --task-events --autoscale=6,2
       --loglevel=info --logfile=/tmp/logs/celery.log
 
   flower:
@@ -74,7 +73,7 @@ services:
       - redis
       - worker
       - rabbitmq
-    entrypoint: celery -A app.worker.celery
+    entrypoint: celery -A backend.worker.celery
       --broker=${CELERY_BROKER_TYPE:-redis}://${CELERY_BROKER_ADDRESS:-redis}
       flower --port=5555
 

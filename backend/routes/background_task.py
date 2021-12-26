@@ -1,52 +1,57 @@
 import time
+import time
 import base64
 
+from os import environ
 from httpx import Client
 from typing import List
-from pathlib import Path
-from fastapi import FastAPI, UploadFile, File
+from fastapi import UploadFile, File, APIRouter
+from pathlib import Path, PurePath
 from datetime import datetime
 from celery.result import AsyncResult
 from alive_progress import alive_bar
 from multiprocessing import Process
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import ORJSONResponse, PlainTextResponse
-from app.worker import (
+
+from .. import schemas
+from ..worker import (
     save_image_task,
     default_multiprocessing_task,
     ray_multiprocessing_task,
     celery_multiprocessing_task,
 )
 
-from app import models
-
-
-app = FastAPI(default_response_class=ORJSONResponse)
+router = APIRouter()
 save_image_dir_path = Path(
-    "/tmp", "logs", datetime.now().strftime("%Y-%m-%d"), "images"
+    environ.get("BASE_LOG_PATH", "/tmp"),
+    environ.get("LOG_FOLDER_NAME", "logs"),
+    environ.get("RECORD_DATE", datetime.now().strftime("%Y-%m-%d")),
+    environ.get("IMAGE_FOLDER_NAME", "images"),
 )
 
 
-@app.post("/tasks", status_code=201)
+@router.post("", status_code=201)
 async def run_task(delay: int = 1, file: UploadFile = File(...)) -> ORJSONResponse:
     contents = await file.read()
     encoded_contents = jsonable_encoder(base64.b64encode(contents))
-    save_image_name = "{fn}.jpg".format(fn=file.filename.splie)
+    save_image_name = "{fn}.jpg".format(fn=PurePath(file.filename).stem)
     save_image_path = save_image_dir_path / save_image_name
     task = save_image_task.delay(encoded_contents, save_image_path.as_posix(), delay)
     return ORJSONResponse(content={"id": task.id})
 
 
-@app.get("/tasks/{task_id}", status_code=200)
+@router.get("/{task_id}", status_code=200)
 async def get_status(task_id: str) -> ORJSONResponse:
     task_result = AsyncResult(task_id)
     result = {"id": task_id, "status": task_result.state, "result": task_result.result}
     return ORJSONResponse(content=result)
 
 
-@app.post("/tasks/multiprocessing/comparison", status_code=201)
+@router.post("/multiprocessing/comparison", status_code=201)
 async def run_multiple_task(
-    task_info: models.MultipleTask, file: UploadFile = File(...)
+    task_info: schemas.MultipleTask,
+    file: UploadFile = File(...),
 ) -> ORJSONResponse:
     """
     **default |████████████████████████████████████████| 10/10 [100%] in 31.2s (0.32/s)**\n
@@ -74,9 +79,10 @@ async def run_multiple_task(
     return ORJSONResponse(content=result)
 
 
-@app.post("/tasks/request/multiple", status_code=200)
+@router.post("/request/multiple", status_code=200)
 async def run_multiple_requests(
-    request_info: models.MultipleRequest, files: List[UploadFile] = File(...)
+    request_info: schemas.MultipleRequest,
+    files: List[UploadFile] = File(...),
 ) -> PlainTextResponse:
     client = Client()
     with alive_bar(len(files)) as bar:
