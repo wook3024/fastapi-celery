@@ -6,10 +6,10 @@ from typing import Union
 from pathlib import Path
 
 
-def save_image_data(contents: str, save_image_path: Union[str, Path]) -> str:
+def save_image_data(encoded_base64_data: str, save_image_path: Union[str, Path]) -> str:
     if isinstance(save_image_path, str):
         save_image_path = Path(save_image_path)
-    bytes_data = base64.b64decode(contents)
+    bytes_data = base64.b64decode(encoded_base64_data)
     encoded_img = np.fromstring(bytes_data, dtype=np.uint8)
     np_array = cv2.imdecode(encoded_img, cv2.IMREAD_COLOR)
     save_image_path.parent.mkdir(parents=True, exist_ok=True)
