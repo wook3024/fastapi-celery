@@ -7,6 +7,8 @@ LABEL maintainer="Shinuk Yi<wook3024@gmail.com>"
 RUN groupadd -r appuser -g 1000 && \
     useradd -u 1000 -r -g appuser -s /sbin/nologin -c "Docker image user" appuser
 
+RUN apt-get update && apt-get install -y libgl1-mesa-glx
+
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
