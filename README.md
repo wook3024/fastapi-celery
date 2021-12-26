@@ -17,21 +17,40 @@ Flower dashboard: [http://localhost:5555](http://localhost:5555)
 
 ```sh
 curl -X 'POST' \
-  'http://localhost:8000/tasks' \
+  'http://0.0.0.0:8000/background_task' \
   -H 'accept: application/json' \
-  -H 'Content-Type: application/json' \
-  -d '10'
+  -H 'Content-Type: multipart/form-data' \
+  -F 'delay=1' \
+  -F 'file=@assets/fluentd-icon-color.png;type=image/png'
 ```
 
 ### Check task status
 
 ```sh
 curl -X 'GET' \
-  'http://localhost:8000/tasks/${id}' \
+  'http://0.0.0.0:8000/background_task/${id}' \
   -H 'accept: application/json'
 ```
 
 ### Multiple request
 ```sh
-python3 tests/main.py
+curl -X 'POST' \
+  'http://0.0.0.0:8000/background_task/multiple' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'delay=1' \
+  -F 'files=@fluentd-icon-color.png;type=image/png' \
+  -F 'files=@fluentd-icon-color.png;type=image/png' \
+  -F 'files=@fluentd-icon-color.png;type=image/png'
+```
+### Comparison method
+```sh
+curl -X 'POST' \
+  'http://0.0.0.0:8000/background_task/comparison' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'count=10' \
+  -F 'delay=1' \
+  -F 'method_list=ray,default,celery' \
+  -F 'file=@fluentd-icon-color.png;type=image/png'
 ```
