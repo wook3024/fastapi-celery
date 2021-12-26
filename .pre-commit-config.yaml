@@ -13,11 +13,11 @@ repos:
     hooks:
     -   id: pip-compile
         name: pip-compile prod.in
-        args: [--generate-hashes, requirements/prod.in]
+        args: [requirements/prod.in]
         files: ^requirements/prod\.(in|txt)$
     -   id: pip-compile
         name: pip-compile dev.in
-        args: [--generate-hashes, requirements/dev.in]
+        args: [requirements/dev.in]
         files: ^requirements/dev\.(in|txt)$
 -   repo: https://github.com/psf/black
     rev: 21.12b0
