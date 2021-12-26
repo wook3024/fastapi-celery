@@ -1,16 +1,32 @@
 version: '3.8'
 
 services:
-  rabbitmq:
-    image: rabbitmq:${RABBITMQ_IMAGE_VERSION:-3.9.11}
-    container_name: rabbitmq
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.3.1
+    container_name: elasticsearch
+    restart: on-failure
     volumes:
-      - rabbitmq:/var/lib/rabbitmq:rw
+      - esdata:/usr/share/elasticsearch/data:rw
     ports:
-      - 5672:5672
+      - 9200:9200
+      - 9300:9300
     environment:
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USERNAME:-guest}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD:-guest}
+      - cluster.name=jaeger-cluster
+      - discovery.type=single-node
+      - http.host=0.0.0.0
+      - transport.host=127.0.0.1
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:6.0.0
+    container_name: kibana
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
 
   redis:
     image: redis:${REDIS_IMAGE_VERSION:-6.2.6}
@@ -37,10 +53,10 @@ services:
       - ${BASE_VOLUME_DIR:-./docker}/logs/web:/tmp/logs:rw
     environment:
       - CELERY_BROKER_URL=${CELERY_BROKER_TYPE:-redis}://${CELERY_BROKER_ADDRESS:-redis}
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND_TYPE:-rpc}://${RABBITMQ_USERNAME:-guest}:${RABBITMQ_PASSWORD:-guest}@${CELERY_RESULT_BACKEND_ADDRESS:-rabbitmq}
+      - CELERY_RESULT_BACKEND=elasticsearch://elasticsearch:9200/background_task/result
     depends_on:
       - redis
-      - rabbitmq
+      - elasticsearch
 
   worker:
     image: suy3024/fastapi-celery:${FASTAPI_CELERY_IMAGE_VERSION:-0.0.0}
@@ -51,11 +67,11 @@ services:
       - ${BASE_VOLUME_DIR:-./docker}/logs/worker:/tmp/logs:rw
     environment:
       - CELERY_BROKER_URL=${CELERY_BROKER_TYPE:-redis}://${CELERY_BROKER_ADDRESS:-redis}
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND_TYPE:-rpc}://${RABBITMQ_USERNAME:-guest}:${RABBITMQ_PASSWORD:-guest}@${CELERY_RESULT_BACKEND_ADDRESS:-rabbitmq}
+      - CELERY_RESULT_BACKEND=elasticsearch://elasticsearch:9200/background_task/result
     depends_on:
       - web
       - redis
-      - rabbitmq
+      - elasticsearch
     entrypoint: celery -A backend.worker.celery worker --task-events --autoscale=6,2
       --loglevel=info --logfile=/tmp/logs/celery.log
 
@@ -67,16 +83,17 @@ services:
       - 5555:5555
     environment:
       - CELERY_BROKER_URL=${CELERY_BROKER_TYPE:-redis}://${CELERY_BROKER_ADDRESS:-redis}
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND_TYPE:-rpc}://${RABBITMQ_USERNAME:-guest}:${RABBITMQ_PASSWORD:-guest}@${CELERY_RESULT_BACKEND_ADDRESS:-rabbitmq}
+      - CELERY_RESULT_BACKEND=elasticsearch://elasticsearch:9200/background_task/result
     depends_on:
       - web
       - redis
       - worker
-      - rabbitmq
+      - elasticsearch
     entrypoint: celery -A backend.worker.celery
       --broker=${CELERY_BROKER_TYPE:-redis}://${CELERY_BROKER_ADDRESS:-redis}
       flower --port=5555
 
 volumes:
-  rabbitmq: {}
   redis: {}
+  esdata: {}
+  eslog: {}
