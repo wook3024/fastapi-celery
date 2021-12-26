@@ -31,8 +31,7 @@ save_image_dir_path = Path(
 async def run_task(delay: int = 1, file: UploadFile = File(...)) -> ORJSONResponse:
     contents = await file.read()
     encoded_contents = jsonable_encoder(base64.b64encode(contents))
-    current_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-    save_image_name = "{fn}_{dt}.jpg".format(fn=file.filename, dt=current_datetime)
+    save_image_name = "{fn}.jpg".format(fn=file.filename.splie)
     save_image_path = save_image_dir_path / save_image_name
     task = save_image_task.delay(encoded_contents, save_image_path.as_posix(), delay)
     return ORJSONResponse(content={"id": task.id})
