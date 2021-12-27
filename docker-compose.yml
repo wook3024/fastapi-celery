@@ -50,7 +50,7 @@ services:
       - 8000:8000
     volumes:
       - .:/workspace:rw
-      - ${BASE_VOLUME_DIR:-./docker}/logs/web:/tmp/logs:rw
+      - ${BASE_VOLUME_DIR:-./logs}/web:/tmp/logs:rw
     environment:
       - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-elasticsearch://elasticsearch:9200/background_task/result}
@@ -64,7 +64,7 @@ services:
     shm_size: 16gb
     volumes:
       - .:/workspace:rw
-      - ${BASE_VOLUME_DIR:-./docker}/logs/worker:/tmp/logs:rw
+      - ${BASE_VOLUME_DIR:-./logs}/worker:/tmp/logs:rw
     environment:
       - CELERY_BROKER_URL=${CELERY_BROKER_URL:-redis://redis}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND:-elasticsearch://elasticsearch:9200/background_task/result}
@@ -96,3 +96,4 @@ volumes:
   redis: {}
   esdata: {}
   eslog: {}
+  servicelog: {}
