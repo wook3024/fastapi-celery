@@ -39,10 +39,10 @@ async def run_task(
     save_image_name = "{fn}.png".format(fn=PurePath(file.filename).stem)
     save_image_path = save_image_dir_path / save_image_name
     task = save_image_task.delay(encoded_contents, save_image_path.as_posix(), delay)
-    return ORJSONResponse(content={"id": task.id})
+    return ORJSONResponse(content={"id": task.id}, status_code=201)
 
 
-@router.get("/{task_id}", status_code=200, response_model=schemas.TaskResult)
+@router.get("", status_code=200, response_model=schemas.TaskResult)
 async def get_status(id: str) -> ORJSONResponse:
     task_result = AsyncResult(id)
     result = {
@@ -50,11 +50,11 @@ async def get_status(id: str) -> ORJSONResponse:
         "state": task_result.state,
         "result": task_result.result,
     }
-    return ORJSONResponse(content=result)
+    return ORJSONResponse(content=result, status_code=200)
 
 
 @router.post("/multiple", status_code=200)
-async def run_multiple_rtask(
+async def run_multiple_task(
     delay: int = Body(1),
     files: List[UploadFile] = File(...),
 ) -> ORJSONResponse:
@@ -66,14 +66,14 @@ async def run_multiple_rtask(
             assert "id" in body  # Request failed.
             results[PurePath(file.filename).stem] = body
             bar()
-    return ORJSONResponse(content=results)
+    return ORJSONResponse(content=results, status_code=200)
 
 
 @router.post("/comparison", status_code=201)
-async def run_multiple_task(
+async def comparison_method(
     count: int = Body(10),
     delay: int = Body(1),
-    method_list: List[str] = Body(["ray", "default", "celery"]),
+    method_list: List[str] = Body(["ray", "multiprocessing", "celery"]),
     file: UploadFile = File(...),
 ) -> ORJSONResponse:
     contents = await file.read()
@@ -85,7 +85,7 @@ async def run_multiple_task(
         with alive_bar(count, title=method) as bar:
             start_time = time.time()
             for _ in range(count):
-                if method == "default":
+                if method == "multiprocessing":
                     p = Process(
                         target=default_multiprocessing_task,
                         args=(encoded_contents, save_image_path.as_posix(), delay),
@@ -102,4 +102,4 @@ async def run_multiple_task(
                 bar()
             end_time = time.time()
             result[method] = "{}s".format(round(end_time - start_time, 3))
-    return ORJSONResponse(content=result)
+    return ORJSONResponse(content=result, status_code=201)

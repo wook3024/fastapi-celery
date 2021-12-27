@@ -25,8 +25,11 @@ certifi==2021.10.8
     #   elasticsearch
     #   httpcore
     #   httpx
+    #   requests
 charset-normalizer==2.0.9
-    # via httpx
+    # via
+    #   httpx
+    #   requests
 click==8.0.3
     # via
     #   celery
@@ -61,6 +64,7 @@ humanize==3.13.1
 idna==3.3
     # via
     #   anyio
+    #   requests
     #   rfc3986
 iniconfig==1.1.1
     # via pytest
@@ -98,6 +102,8 @@ pytz==2021.3
     #   flower
 redis==4.0.2
     # via -r requirements/prod.in
+requests==2.26.0
+    # via -r requirements/prod.in
 rfc3986[idna2008]==1.5.0
     # via httpx
 six==1.16.0
@@ -118,7 +124,9 @@ tornado==6.1
 typing-extensions==4.0.1
     # via pydantic
 urllib3==1.26.7
-    # via elasticsearch
+    # via
+    #   elasticsearch
+    #   requests
 uvicorn==0.16.0
     # via -r requirements/prod.in
 vine==5.0.0
