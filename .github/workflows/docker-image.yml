@@ -3,10 +3,11 @@ name: Docker Image CI
 on:
   push:
     branches: [ main ]
+    tags:
+      - '**'
   pull_request:
     branches: [ main ]
-  tag:
-    - '**
+
 
 jobs:
   # test:
